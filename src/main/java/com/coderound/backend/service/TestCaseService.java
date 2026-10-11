@@ -76,7 +76,7 @@ public class TestCaseService {
         validateQuestionExists(questionId);
 
         return testCaseRepository
-                .findByQuestion_IdAndIsHiddenFalse(questionId);
+                .findByQuestion_IdAndHiddenFalse(questionId);
     }
 
     @Transactional(readOnly = true)
@@ -85,7 +85,7 @@ public class TestCaseService {
         validateQuestionExists(questionId);
 
         return testCaseRepository
-                .findByQuestion_IdAndIsHiddenTrue(questionId);
+                .findByQuestion_IdAndHiddenTrue(questionId);
     }
 
     @Transactional(readOnly = true)

@@ -1,0 +1,115 @@
+services:
+  # -------------------------------------------------------------
+  # 1. PostgreSQL Database
+  # -------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: coderound-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-coderound_db}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgresql}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d ${DB_NAME:-coderound_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - coderound-network
+
+  # -------------------------------------------------------------
+  # 2. Judge0 CE Code Execution Engine (Optional / Configurable)
+  # -------------------------------------------------------------
+  judge0:
+    image: judge0/judge0:1.13.0
+    container_name: coderound-judge0
+    restart: unless-stopped
+    ports:
+      - "2358:2358"
+    privileged: true
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - coderound-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: coderound-redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - coderound-network
+
+  # -------------------------------------------------------------
+  # 3. Spring Boot Backend API
+  # -------------------------------------------------------------
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: coderound-backend
+    restart: unless-stopped
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-coderound_db}
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgresql}
+      JUDGE0_BASE_URL: ${JUDGE0_BASE_URL:-http://judge0:2358}
+      JUDGE0_ENABLED: ${JUDGE0_ENABLED:-true}
+      SPRING_PROFILES_ACTIVE: prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - coderound-network
+
+  # -------------------------------------------------------------
+  # 4. React Vite Frontend
+  # -------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: coderound-frontend
+    restart: unless-stopped
+    networks:
+      - coderound-network
+
+  # -------------------------------------------------------------
+  # 5. Nginx Reverse Proxy / Gateway
+  # -------------------------------------------------------------
+  nginx:
+    image: nginx:alpine
+    container_name: coderound-gateway
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - coderound-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  coderound-network:
+    driver: bridge

@@ -37,9 +37,9 @@ public class GlobalExceptionHandler {
                 request.getRequestURI());
     }
 
-    @ExceptionHandler(BusinessRuleException.class)
+    @ExceptionHandler({BusinessRuleException.class, IllegalStateException.class})
     public ResponseEntity<ApiErrorResponse> handleBusinessRule(
-            BusinessRuleException exception,
+            RuntimeException exception,
             HttpServletRequest request) {
 
         return buildResponse(

@@ -42,13 +42,20 @@ public class SubmissionResult {
     private SubmissionResultStatus status;
 
     @Column(name = "execution_time_ms")
-    private Long executionTimeMs;
+    private Integer executionTimeMs;
 
     @Column(name = "memory_used_kb")
-    private Long memoryUsedKb;
+    private Integer memoryUsedKb;
 
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.createdAt == null) {
+            this.createdAt = OffsetDateTime.now();
+        }
+    }
 
     public SubmissionResult() {
     }
@@ -117,19 +124,19 @@ public class SubmissionResult {
         this.status = status;
     }
 
-    public Long getExecutionTimeMs() {
+    public Integer getExecutionTimeMs() {
         return executionTimeMs;
     }
 
-    public void setExecutionTimeMs(Long executionTimeMs) {
+    public void setExecutionTimeMs(Integer executionTimeMs) {
         this.executionTimeMs = executionTimeMs;
     }
 
-    public Long getMemoryUsedKb() {
+    public Integer getMemoryUsedKb() {
         return memoryUsedKb;
     }
 
-    public void setMemoryUsedKb(Long memoryUsedKb) {
+    public void setMemoryUsedKb(Integer memoryUsedKb) {
         this.memoryUsedKb = memoryUsedKb;
     }
 

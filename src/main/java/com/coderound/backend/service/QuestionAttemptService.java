@@ -23,7 +23,7 @@ import java.util.Set;
 public class QuestionAttemptService {
 
     private static final Set<String> SUPPORTED_LANGUAGES =
-            Set.of("JAVA");
+            Set.of("JAVA", "PYTHON", "CPP", "JAVASCRIPT", "C");
 
     private static final int MAX_SOURCE_CODE_LENGTH = 100_000;
 
@@ -92,19 +92,26 @@ public class QuestionAttemptService {
             String sessionCode,
             Long questionId) {
 
+        return findAttemptOptional(sessionCode, questionId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "No saved attempt exists for this question"));
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.Optional<QuestionAttempt> findAttemptOptional(
+            String sessionCode,
+            Long questionId) {
+
         validateSessionCode(sessionCode);
         validateQuestionId(questionId);
 
         AssessmentSession session = findSession(sessionCode);
-
         validateQuestionAssignment(session.getId(), questionId);
 
         return attemptRepository
                 .findByAssessmentSession_IdAndQuestion_Id(
-                        session.getId(), questionId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "No saved attempt exists for this question"));
+                        session.getId(), questionId);
     }
 
     private AssessmentSession findSession(String sessionCode) {

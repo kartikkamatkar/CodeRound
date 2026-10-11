@@ -28,6 +28,13 @@ public class Submission {
     @Column(name = "completed_at")
     private OffsetDateTime completedAt;
 
+    @PrePersist
+    protected void onCreate() {
+        if (this.submittedAt == null) {
+            this.submittedAt = OffsetDateTime.now();
+        }
+    }
+
     public Submission(){
 
     }

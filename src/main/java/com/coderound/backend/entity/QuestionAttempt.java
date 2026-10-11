@@ -34,6 +34,12 @@ public class QuestionAttempt {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
+    @PrePersist
+    @PreUpdate
+    protected void onSave() {
+        this.updatedAt = OffsetDateTime.now();
+    }
+
     public QuestionAttempt() {
     }
 

@@ -34,6 +34,13 @@ public class AssessmentQuestion {
     @Column(name = "created_at",nullable = false)
     private OffsetDateTime createdAt;
 
+    @PrePersist
+    protected void onCreate() {
+        if (this.createdAt == null) {
+            this.createdAt = OffsetDateTime.now();
+        }
+    }
+
     public AssessmentQuestion(){
 
     }

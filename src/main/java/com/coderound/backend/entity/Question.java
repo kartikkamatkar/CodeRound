@@ -17,6 +17,13 @@ public class Question {
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
 
+    @PrePersist
+    protected void onCreate() {
+        if (this.createdAt == null) {
+            this.createdAt = OffsetDateTime.now();
+        }
+    }
+
     public Long getId() {
         return id;
     }

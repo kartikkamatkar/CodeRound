@@ -46,8 +46,8 @@ public class SubmissionResultService {
             int totalTestCases,
             int passedTestCases,
             SubmissionResultStatus status,
-            Long executionTimeMs,
-            Long memoryUsedKb) {
+            Integer executionTimeMs,
+            Integer memoryUsedKb) {
 
         // 1. Validate identifiers
         if (submissionId == null || submissionId <= 0

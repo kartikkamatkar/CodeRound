@@ -43,9 +43,9 @@ public class AssessmentSessionService {
 
     public AssessmentSession createSession(List<Long> questionIds) {
 
-        validateQuestionIds(questionIds);
+        List<Long> resolvedIds = resolveQuestionIds(questionIds);
 
-        Set<Long> uniqueQuestionIds = new HashSet<>(questionIds);
+        Set<Long> uniqueQuestionIds = new HashSet<>(resolvedIds);
 
         if (uniqueQuestionIds.size() != REQUIRED_QUESTION_COUNT) {
             throw new IllegalArgumentException(
@@ -74,9 +74,9 @@ public class AssessmentSessionService {
         AssessmentSession savedSession =
                 sessionRepository.save(session);
 
-        for (int i = 0; i < questionIds.size(); i++) {
+        for (int i = 0; i < resolvedIds.size(); i++) {
 
-            Long questionId = questionIds.get(i);
+            Long questionId = resolvedIds.get(i);
             Question question = questionsById.get(questionId);
 
             AssessmentQuestion assessmentQuestion =
@@ -85,11 +85,28 @@ public class AssessmentSessionService {
             assessmentQuestion.setAssessmentSession(savedSession);
             assessmentQuestion.setQuestion(question);
             assessmentQuestion.setQuestionOrder(i + 1);
+            assessmentQuestion.setCreatedAt(now);
 
             assessmentQuestionRepository.save(assessmentQuestion);
         }
 
         return savedSession;
+    }
+
+    private List<Long> resolveQuestionIds(List<Long> questionIds) {
+        if (questionIds == null || questionIds.isEmpty()) {
+            List<Question> all = questionRepository.findAll();
+            if (all.size() < REQUIRED_QUESTION_COUNT) {
+                throw new IllegalStateException(
+                        "Not enough questions in database to start an assessment (found " + all.size() + ", need 4)");
+            }
+            return all.stream()
+                    .limit(REQUIRED_QUESTION_COUNT)
+                    .map(Question::getId)
+                    .collect(Collectors.toList());
+        }
+        validateQuestionIds(questionIds);
+        return questionIds;
     }
 
     private void validateQuestionIds(List<Long> questionIds) {
@@ -155,6 +172,25 @@ public class AssessmentSessionService {
         }
 
         return session;
+    }
+
+    @Transactional(readOnly = true)
+    public List<AssessmentQuestion> getAssignedQuestions(String sessionCode) {
+        AssessmentSession session = getSessionByCode(sessionCode);
+        return assessmentQuestionRepository
+                .findByAssessmentSession_IdOrderByQuestionOrderAsc(session.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public AssessmentQuestion getAssignedQuestion(String sessionCode, Long questionId) {
+        AssessmentSession session = getSessionByCode(sessionCode);
+        if (questionId == null || questionId <= 0) {
+            throw new IllegalArgumentException("Question ID must be a positive number");
+        }
+        return assessmentQuestionRepository
+                .findByAssessmentSession_IdAndQuestion_Id(session.getId(), questionId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Question ID " + questionId + " is not assigned to session " + sessionCode));
     }
 
     private void validateSessionCode(String sessionCode) {

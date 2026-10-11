@@ -28,6 +28,16 @@ public class AssessmentSession {
     @Column(name ="submitted_at")
     private OffsetDateTime submittedAt;
 
+    @PrePersist
+    protected void onCreate() {
+        if (this.startedAt == null) {
+            this.startedAt = OffsetDateTime.now();
+        }
+        if (this.expiresAt == null) {
+            this.expiresAt = this.startedAt.plusMinutes(60);
+        }
+    }
+
     public AssessmentSession(){
 
     }

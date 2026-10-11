@@ -9,8 +9,7 @@ public interface TestCaseRepository extends JpaRepository<TestCase,Long> {
 
     List<TestCase> findByQuestion_Id(Long questionId);
 
-    List<TestCase> findByQuestion_IdAndIsHiddenFalse(Long questionId);
+    List<TestCase> findByQuestion_IdAndHiddenFalse(Long questionId);
 
-    List<TestCase> findByQuestion_IdAndIsHiddenTrue(Long questionId);
-
+    List<TestCase> findByQuestion_IdAndHiddenTrue(Long questionId);
 }

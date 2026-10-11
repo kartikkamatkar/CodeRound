@@ -22,6 +22,8 @@ public class QuestionCreateRequest {
     )
     private String difficulty;
 
+    private java.util.List<TestCaseCreateRequest> testCases = new java.util.ArrayList<>();
+
     public QuestionCreateRequest() {
     }
 
@@ -47,5 +49,13 @@ public class QuestionCreateRequest {
 
     public void setDifficulty(String difficulty) {
         this.difficulty = difficulty;
+    }
+
+    public java.util.List<TestCaseCreateRequest> getTestCases() {
+        return testCases;
+    }
+
+    public void setTestCases(java.util.List<TestCaseCreateRequest> testCases) {
+        this.testCases = testCases != null ? testCases : new java.util.ArrayList<>();
     }
 }
