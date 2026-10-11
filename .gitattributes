@@ -1,0 +1,5 @@
+/mvnw text eol=lf
+*.cmd text eol=crlf
+DB_URL=jdbc:postgresql://localhost:5432/coderound_db
+DB_USERNAME=coderound_app
+DB_PASSWORD=your_actual_database_password
